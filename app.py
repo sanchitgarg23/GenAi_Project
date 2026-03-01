@@ -18,55 +18,391 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-    
-    /* Global */
-    .stApp { font-family: 'Inter', sans-serif; }
-    
-    /* Metric cards */
-    .metric-card {
-        background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-        border-radius: 16px;
-        padding: 24px;
-        color: white;
-        border: 1px solid rgba(255,255,255,0.08);
-        box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+    /* ── CSS Custom Properties: Medical Dark Theme ── */
+    :root {
+        --bg-primary: #0a0e1a;
+        --bg-secondary: #111827;
+        --bg-card: #1a1f2e;
+        --bg-card-hover: #222838;
+        --border-subtle: rgba(255,255,255,0.06);
+        --border-accent: rgba(14,165,233,0.25);
+        --accent-teal: #0ea5e9;
+        --accent-blue: #3b82f6;
+        --accent-indigo: #6366f1;
+        --accent-green: #22c55e;
+        --accent-yellow: #f59e0b;
+        --accent-red: #ef4444;
+        --text-primary: #f1f5f9;
+        --text-muted: #94a3b8;
+        --text-dim: #64748b;
+        --glass-bg: rgba(17,24,39,0.7);
+        --glass-border: rgba(255,255,255,0.08);
+        --radius-lg: 16px;
+        --radius-md: 12px;
+        --shadow-card: 0 4px 24px rgba(0,0,0,0.35);
+        --shadow-glow-teal: 0 0 20px rgba(14,165,233,0.15);
+        --shadow-glow-red: 0 0 20px rgba(239,68,68,0.2);
+        --shadow-glow-green: 0 0 20px rgba(34,197,94,0.15);
+        --shadow-glow-yellow: 0 0 20px rgba(245,158,11,0.15);
     }
-    .metric-card h3 { margin: 0; font-size: 14px; font-weight: 500; opacity: 0.7; letter-spacing: 0.5px; text-transform: uppercase; }
-    .metric-card .value { font-size: 36px; font-weight: 700; margin: 8px 0 4px; }
-    .metric-card .sub { font-size: 13px; opacity: 0.6; }
-    
-    /* Risk badges */
-    .risk-low { color: #22c55e; }
-    .risk-moderate { color: #f59e0b; }
-    .risk-high { color: #ef4444; }
-    
-    /* Header */
+
+    /* ── Keyframe Animations ── */
+    @keyframes pulse-glow {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.6; }
+    }
+    @keyframes float-in {
+        from { opacity: 0; transform: translateY(12px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes border-shimmer {
+        0% { border-color: rgba(14,165,233,0.2); }
+        50% { border-color: rgba(14,165,233,0.5); }
+        100% { border-color: rgba(14,165,233,0.2); }
+    }
+    @keyframes critical-pulse {
+        0%, 100% { box-shadow: 0 0 8px rgba(239,68,68,0.3); }
+        50% { box-shadow: 0 0 24px rgba(239,68,68,0.6); }
+    }
+    @keyframes status-dot {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.4); opacity: 0.5; }
+    }
+
+    /* ── Global App Background ── */
+    .stApp {
+        font-family: 'Inter', sans-serif;
+        background: linear-gradient(170deg, var(--bg-primary) 0%, #0d1321 40%, var(--bg-secondary) 100%) !important;
+        color: var(--text-primary);
+    }
+    .stApp > header { background: transparent !important; }
+
+    /* ── Sidebar ── */
+    [data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #0d1117 0%, #111827 100%) !important;
+        border-right: 1px solid var(--border-subtle) !important;
+    }
+    [data-testid="stSidebar"] .stMarkdown p,
+    [data-testid="stSidebar"] .stMarkdown label,
+    [data-testid="stSidebar"] .stSelectbox label,
+    [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 {
+        color: var(--text-primary) !important;
+    }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-primary); }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 8px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+    /* ── Metric Cards (Glass Morphism) ── */
+    .metric-card {
+        background: linear-gradient(145deg, var(--bg-card) 0%, rgba(26,31,46,0.85) 100%);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-radius: var(--radius-lg);
+        padding: 24px 28px;
+        color: var(--text-primary);
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--shadow-card);
+        transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.3s ease;
+        animation: float-in 0.5s ease-out;
+        position: relative;
+        overflow: hidden;
+    }
+    .metric-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--accent-teal), var(--accent-blue));
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        opacity: 0.7;
+    }
+    .metric-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-card), var(--shadow-glow-teal);
+        border-color: var(--border-accent);
+    }
+    .metric-card .card-icon {
+        font-size: 28px;
+        margin-bottom: 8px;
+        display: block;
+    }
+    .metric-card h3 {
+        margin: 0;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-muted);
+        letter-spacing: 1px;
+        text-transform: uppercase;
+    }
+    .metric-card .value {
+        font-size: 36px;
+        font-weight: 800;
+        margin: 8px 0 4px;
+        line-height: 1.1;
+    }
+    .metric-card .sub {
+        font-size: 13px;
+        color: var(--text-dim);
+        font-weight: 400;
+    }
+
+    /* ── Risk Color Classes ── */
+    .risk-low { color: var(--accent-green) !important; }
+    .risk-moderate { color: var(--accent-yellow) !important; }
+    .risk-high { color: var(--accent-red) !important; }
+    .glow-green { border-color: rgba(34,197,94,0.3) !important; box-shadow: var(--shadow-card), var(--shadow-glow-green) !important; }
+    .glow-yellow { border-color: rgba(245,158,11,0.3) !important; box-shadow: var(--shadow-card), var(--shadow-glow-yellow) !important; }
+    .glow-red { border-color: rgba(239,68,68,0.3) !important; box-shadow: var(--shadow-card), var(--shadow-glow-red) !important; }
+
+    /* ── App Header ── */
     .app-header {
-        background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
-        padding: 32px 40px;
+        background: linear-gradient(135deg, #0a0e1a 0%, #0c1a2e 30%, #122040 60%, #0a0e1a 100%);
+        padding: 36px 44px;
         border-radius: 20px;
-        margin-bottom: 24px;
-        border: 1px solid rgba(59,130,246,0.2);
+        margin-bottom: 28px;
+        border: 1px solid var(--border-accent);
+        position: relative;
+        overflow: hidden;
+        animation: float-in 0.6s ease-out;
+    }
+    .app-header::before {
+        content: '';
+        position: absolute;
+        top: -50%; right: -20%;
+        width: 300px; height: 300px;
+        background: radial-gradient(circle, rgba(14,165,233,0.08) 0%, transparent 70%);
+        pointer-events: none;
+    }
+    .app-header::after {
+        content: '';
+        position: absolute;
+        bottom: -40%; left: -10%;
+        width: 250px; height: 250px;
+        background: radial-gradient(circle, rgba(99,102,241,0.06) 0%, transparent 70%);
+        pointer-events: none;
+    }
+    .app-header .header-row {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        position: relative;
+        z-index: 1;
+    }
+    .app-header .header-icon {
+        font-size: 38px;
+        filter: drop-shadow(0 0 8px rgba(14,165,233,0.4));
     }
     .app-header h1 {
         margin: 0;
-        color: white;
-        font-size: 32px;
-        font-weight: 700;
-        background: linear-gradient(135deg, #60a5fa, #a78bfa);
+        font-size: 30px;
+        font-weight: 800;
+        background: linear-gradient(135deg, #60a5fa 0%, #38bdf8 40%, #a78bfa 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        background-clip: text;
     }
-    .app-header p { color: #94a3b8; margin: 8px 0 0; font-size: 15px; }
-    
-    /* Tabs */
-    .stTabs [data-baseweb="tab-list"] { gap: 8px; }
+    .app-header .subtitle {
+        color: var(--text-muted);
+        margin: 6px 0 0 0;
+        font-size: 15px;
+        font-weight: 400;
+        position: relative;
+        z-index: 1;
+    }
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(34,197,94,0.1);
+        border: 1px solid rgba(34,197,94,0.25);
+        border-radius: 20px;
+        padding: 5px 14px;
+        font-size: 12px;
+        color: var(--accent-green);
+        font-weight: 600;
+        margin-top: 12px;
+        position: relative;
+        z-index: 1;
+    }
+    .status-dot {
+        width: 7px; height: 7px;
+        background: var(--accent-green);
+        border-radius: 50%;
+        animation: status-dot 2s ease-in-out infinite;
+    }
+
+    /* ── Tabs ── */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 6px;
+        background: var(--bg-card);
+        border-radius: var(--radius-md);
+        padding: 6px;
+        border: 1px solid var(--glass-border);
+    }
     .stTabs [data-baseweb="tab"] {
-        border-radius: 10px;
-        padding: 10px 20px;
+        border-radius: 8px;
+        padding: 10px 22px;
         font-weight: 500;
+        color: var(--text-muted) !important;
+        transition: all 0.2s ease;
     }
+    .stTabs [data-baseweb="tab"]:hover { color: var(--text-primary) !important; background: rgba(255,255,255,0.04); }
+    .stTabs [aria-selected="true"] {
+        background: linear-gradient(135deg, rgba(14,165,233,0.15), rgba(59,130,246,0.15)) !important;
+        color: var(--accent-teal) !important;
+        font-weight: 600;
+    }
+
+    /* ── Buttons ── */
+    .stButton > button {
+        background: linear-gradient(135deg, var(--accent-teal), var(--accent-blue)) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: var(--radius-md) !important;
+        font-weight: 600 !important;
+        padding: 10px 24px !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 16px rgba(14,165,233,0.25) !important;
+    }
+    .stButton > button:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 24px rgba(14,165,233,0.4) !important;
+    }
+
+    /* ── Inputs, Selects, Sliders ── */
+    .stTextInput > div > div, .stNumberInput > div > div,
+    .stSelectbox > div > div, .stMultiSelect > div > div {
+        background: var(--bg-card) !important;
+        border-color: var(--glass-border) !important;
+        color: var(--text-primary) !important;
+        border-radius: var(--radius-md) !important;
+    }
+    .stSlider > div > div > div { background: var(--accent-teal) !important; }
+
+    /* ── Dataframes ── */
+    [data-testid="stDataFrame"] {
+        border: 1px solid var(--glass-border) !important;
+        border-radius: var(--radius-md) !important;
+    }
+
+    /* ── Section Dividers ── */
+    hr { border-color: var(--border-subtle) !important; }
+    .stMarkdown h3, .stMarkdown h4 { color: var(--text-primary) !important; }
+
+    /* ── Risk Result Card (Prediction) ── */
+    .risk-result-card {
+        background: linear-gradient(145deg, var(--bg-card), rgba(26,31,46,0.9));
+        backdrop-filter: blur(12px);
+        border-radius: var(--radius-lg);
+        padding: 32px;
+        text-align: center;
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--shadow-card);
+        position: relative;
+        overflow: hidden;
+        animation: float-in 0.5s ease-out;
+    }
+    .risk-result-card .score-ring {
+        width: 140px; height: 140px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+        font-size: 42px;
+        font-weight: 800;
+        position: relative;
+    }
+    .risk-result-card .result-label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: var(--text-muted);
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+    .risk-result-card .result-category {
+        font-size: 20px;
+        font-weight: 700;
+        margin-top: 4px;
+    }
+    .risk-tier-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        margin-top: 12px;
+    }
+    .tier-low { background: rgba(34,197,94,0.12); color: var(--accent-green); border: 1px solid rgba(34,197,94,0.3); }
+    .tier-moderate { background: rgba(245,158,11,0.12); color: var(--accent-yellow); border: 1px solid rgba(245,158,11,0.3); }
+    .tier-high { background: rgba(239,68,68,0.12); color: var(--accent-red); border: 1px solid rgba(239,68,68,0.3); }
+
+    /* ── Floating Alert Badge ── */
+    .alert-badge {
+        position: absolute;
+        top: 12px; right: 12px;
+        background: var(--accent-red);
+        color: white;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 12px;
+        animation: critical-pulse 1.5s ease-in-out infinite;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+    }
+
+    /* ── Sub-Score Progress Bars ── */
+    .subscore-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 10px;
+    }
+    .subscore-label {
+        width: 110px;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-muted);
+        text-align: right;
+        flex-shrink: 0;
+    }
+    .subscore-bar-bg {
+        flex: 1;
+        height: 8px;
+        background: rgba(255,255,255,0.06);
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    .subscore-bar-fill {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 0.6s ease;
+    }
+    .subscore-val {
+        width: 45px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-primary);
+        text-align: left;
+        flex-shrink: 0;
+    }
+
+    /* ── Vitals grid card accent overrides ── */
+    .metric-card.card-total::before { background: linear-gradient(90deg, var(--accent-teal), var(--accent-blue)); }
+    .metric-card.card-avg::before { background: linear-gradient(90deg, var(--accent-blue), var(--accent-indigo)); }
+    .metric-card.card-high::before { background: var(--accent-red); }
+    .metric-card.card-moderate::before { background: var(--accent-yellow); }
+    .metric-card.card-low::before { background: var(--accent-green); }
 </style>
 """, unsafe_allow_html=True)
 
@@ -441,60 +777,74 @@ def train_clinical_model(_X_scaled, _y_target):
 def render_header():
     st.markdown("""
     <div class="app-header">
-        <h1>Clinical Risk Intelligence Dashboard</h1>
-        <p>Weighted clinical risk scoring algorithm with ML-powered 30-day readmission prediction</p>
+        <div class="header-row">
+            <span class="header-icon">🏥</span>
+            <h1>Clinical Risk Intelligence Dashboard</h1>
+        </div>
+        <p class="subtitle">Weighted clinical risk scoring algorithm with ML-powered 30-day readmission prediction</p>
+        <div class="status-badge">
+            <span class="status-dot"></span>
+            System Online — Real-time Analysis Active
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
 
 def render_overview_metrics(df):
-    """Renders the top-level KPI cards."""
+    """Renders the top-level vitals grid KPI cards with icons and color-coded glows."""
     total = len(df)
     high_risk = len(df[df['Risk_Category'] == 'High'])
     moderate_risk = len(df[df['Risk_Category'] == 'Moderate'])
     low_risk = len(df[df['Risk_Category'] == 'Low'])
     avg_score = df['Risk_Score'].mean()
+    avg_age = df['Age'].mean()
     
     c1, c2, c3, c4, c5 = st.columns(5)
     
     with c1:
         st.markdown(f"""
-        <div class="metric-card">
+        <div class="metric-card card-total">
+            <span class="card-icon">🩺</span>
             <h3>Total Patients</h3>
             <div class="value">{total:,}</div>
-            <div class="sub">In dataset</div>
+            <div class="sub">Avg age {avg_age:.0f} yrs</div>
         </div>""", unsafe_allow_html=True)
     
     with c2:
+        score_class = 'risk-high' if avg_score > 60 else ('risk-moderate' if avg_score > 30 else 'risk-low')
         st.markdown(f"""
-        <div class="metric-card">
+        <div class="metric-card card-avg">
+            <span class="card-icon">📊</span>
             <h3>Avg Risk Score</h3>
-            <div class="value">{avg_score:.1f}</div>
-            <div class="sub">Out of 100</div>
+            <div class="value {score_class}">{avg_score:.1f}</div>
+            <div class="sub">Weighted composite</div>
         </div>""", unsafe_allow_html=True)
     
     with c3:
         st.markdown(f"""
-        <div class="metric-card">
-            <h3>High Risk</h3>
+        <div class="metric-card card-high glow-red">
+            <span class="card-icon">🔴</span>
+            <h3>Critical / High</h3>
             <div class="value risk-high">{high_risk:,}</div>
-            <div class="sub">{high_risk/total*100:.1f}% of patients</div>
+            <div class="sub">{high_risk/total*100:.1f}% — Immediate review</div>
         </div>""", unsafe_allow_html=True)
     
     with c4:
         st.markdown(f"""
-        <div class="metric-card">
-            <h3>Moderate Risk</h3>
+        <div class="metric-card card-moderate glow-yellow">
+            <span class="card-icon">🟡</span>
+            <h3>Elevated</h3>
             <div class="value risk-moderate">{moderate_risk:,}</div>
-            <div class="sub">{moderate_risk/total*100:.1f}% of patients</div>
+            <div class="sub">{moderate_risk/total*100:.1f}% — Monitor closely</div>
         </div>""", unsafe_allow_html=True)
     
     with c5:
         st.markdown(f"""
-        <div class="metric-card">
-            <h3>Low Risk</h3>
+        <div class="metric-card card-low glow-green">
+            <span class="card-icon">🟢</span>
+            <h3>Normal</h3>
             <div class="value risk-low">{low_risk:,}</div>
-            <div class="sub">{low_risk/total*100:.1f}% of patients</div>
+            <div class="sub">{low_risk/total*100:.1f}% — Within range</div>
         </div>""", unsafe_allow_html=True)
 
 
@@ -587,21 +937,27 @@ def render_patient_table_tab(df):
 
 
 def render_model_tab(metrics):
-    """Model performance metrics display."""
+    """Model performance metrics display with themed cards."""
     st.markdown("### ML Model Performance (Logistic Regression)")
     st.markdown("*Predicts 30-day hospital readmission using patient clinical features*")
     
     col1, col2, col3, col4 = st.columns(4)
     
-    with col1:
-        st.metric("Accuracy", f"{metrics['accuracy']:.4f}")
-    with col2:
-        st.metric("Precision", f"{metrics['precision']:.4f}")
-    with col3:
-        st.metric("Recall", f"{metrics['recall']:.4f}")
-    with col4:
-        roc_val = f"{metrics['roc_auc']:.4f}" if metrics['roc_auc'] else "N/A"
-        st.metric("ROC-AUC", roc_val)
+    model_metrics = [
+        ("Accuracy", f"{metrics['accuracy']:.4f}", "🎯", col1),
+        ("Precision", f"{metrics['precision']:.4f}", "🔬", col2),
+        ("Recall", f"{metrics['recall']:.4f}", "📡", col3),
+        ("ROC-AUC", f"{metrics['roc_auc']:.4f}" if metrics['roc_auc'] else "N/A", "📈", col4),
+    ]
+    
+    for label, val, icon, col in model_metrics:
+        with col:
+            st.markdown(f"""
+            <div class="metric-card" style="text-align:center;">
+                <span class="card-icon">{icon}</span>
+                <h3>{label}</h3>
+                <div class="value" style="font-size:28px;">{val}</div>
+            </div>""", unsafe_allow_html=True)
     
     st.markdown("---")
     st.markdown("#### Confusion Matrix")
@@ -671,47 +1027,81 @@ def render_prediction_tab(model, scaler, le_gender, feature_names):
         
         st.markdown("---")
         
-        # Results
+        # --- Dynamic Risk Result Cards ---
+        risk_color = '#ef4444' if res['category'] == 'High' else ('#f59e0b' if res['category'] == 'Moderate' else '#22c55e')
+        tier_class = 'tier-high' if res['category'] == 'High' else ('tier-moderate' if res['category'] == 'Moderate' else 'tier-low')
+        glow_class = 'glow-red' if res['category'] == 'High' else ('glow-yellow' if res['category'] == 'Moderate' else 'glow-green')
+        ring_bg = f'radial-gradient(circle, rgba({"239,68,68" if res["category"]=="High" else ("245,158,11" if res["category"]=="Moderate" else "34,197,94")},0.12) 0%, transparent 70%)'
+        alert_html = '<span class="alert-badge">⚠ Critical</span>' if res['category'] == 'High' else ''
+        tier_label = 'Critical' if res['category'] == 'High' else ('Elevated' if res['category'] == 'Moderate' else 'Normal')
+        
+        readmit_color = '#ef4444' if res['readmission_pred'] == 1 else '#22c55e'
+        readmit_glow = 'glow-red' if res['readmission_pred'] == 1 else 'glow-green'
+        readmit_alert = '<span class="alert-badge">⚠ Alert</span>' if res['readmission_pred'] == 1 else ''
+        
         col_a, col_b = st.columns(2)
         
         with col_a:
-            risk_color = '#ef4444' if res['category'] == 'High' else ('#f59e0b' if res['category'] == 'Moderate' else '#22c55e')
             st.markdown(f"""
-            <div class="metric-card" style="text-align: center;">
-                <h3>Weighted Risk Score</h3>
-                <div class="value" style="color: {risk_color}; font-size: 48px;">{res['score']}</div>
-                <div class="sub" style="font-size: 18px; color: {risk_color}; font-weight: 600;">{res['category']} Risk</div>
+            <div class="risk-result-card {glow_class}">
+                {alert_html}
+                <div class="result-label">Weighted Risk Score</div>
+                <div class="score-ring" style="background: {ring_bg}; border: 3px solid {risk_color};">
+                    <span style="color: {risk_color};">{res['score']}</span>
+                </div>
+                <div class="result-category" style="color: {risk_color};">{res['category']} Risk</div>
+                <div class="risk-tier-badge {tier_class}">● {tier_label}</div>
             </div>
             """, unsafe_allow_html=True)
         
         with col_b:
-            readmit_color = '#ef4444' if res['readmission_pred'] == 1 else '#22c55e'
+            readmit_ring_bg = f'radial-gradient(circle, rgba({"239,68,68" if res["readmission_pred"]==1 else "34,197,94"},0.12) 0%, transparent 70%)'
             st.markdown(f"""
-            <div class="metric-card" style="text-align: center;">
-                <h3>ML Readmission Prediction</h3>
-                <div class="value" style="color: {readmit_color}; font-size: 48px;">{res['readmission_prob']*100:.1f}%</div>
-                <div class="sub" style="font-size: 18px; color: {readmit_color}; font-weight: 600;">{'Likely to be Readmitted' if res['readmission_pred'] == 1 else 'Unlikely to be Readmitted'}</div>
+            <div class="risk-result-card {readmit_glow}">
+                {readmit_alert}
+                <div class="result-label">ML Readmission Prediction</div>
+                <div class="score-ring" style="background: {readmit_ring_bg}; border: 3px solid {readmit_color};">
+                    <span style="color: {readmit_color};">{res['readmission_prob']*100:.1f}%</span>
+                </div>
+                <div class="result-category" style="color: {readmit_color};">{'Likely to be Readmitted' if res['readmission_pred'] == 1 else 'Unlikely to be Readmitted'}</div>
+                <div class="risk-tier-badge {'tier-high' if res['readmission_pred'] == 1 else 'tier-low'}">● {'High Risk' if res['readmission_pred'] == 1 else 'Low Risk'}</div>
             </div>
             """, unsafe_allow_html=True)
         
         st.markdown("---")
         st.markdown("#### Risk Factor Breakdown")
-        breakdown_df = pd.DataFrame({
-            'Factor': list(res['sub_scores'].keys()),
-            'Sub-Score (0-100)': list(res['sub_scores'].values()),
-            'Weight': [RISK_WEIGHTS[k.lower().replace(' ', '_')] if k.lower().replace(' ', '_') in RISK_WEIGHTS else RISK_WEIGHTS.get(k.lower().replace(' bp', '_bp'), 0) for k in res['sub_scores'].keys()],
-        })
-        # Fix weight mapping
+        
+        # Visual sub-score progress bars
         weight_map = {
             'BMI': 0.20, 'Systolic BP': 0.20, 'Diastolic BP': 0.10,
             'Glucose': 0.15, 'Cholesterol': 0.15, 'Age': 0.10,
             'Diabetes': 0.05, 'Hypertension': 0.05
         }
+        
+        bars_html = '<div style="margin-top:12px;">'
+        for factor, value in res['sub_scores'].items():
+            bar_color = '#ef4444' if value > 70 else ('#f59e0b' if value > 35 else '#22c55e')
+            bars_html += f'''
+            <div class="subscore-row">
+                <span class="subscore-label">{factor}</span>
+                <div class="subscore-bar-bg">
+                    <div class="subscore-bar-fill" style="width:{min(value, 100)}%; background:{bar_color};"></div>
+                </div>
+                <span class="subscore-val" style="color:{bar_color};">{value}</span>
+            </div>'''
+        bars_html += '</div>'
+        st.markdown(bars_html, unsafe_allow_html=True)
+        
+        # Also keep the data table for detail
+        st.markdown("<br>", unsafe_allow_html=True)
+        breakdown_df = pd.DataFrame({
+            'Factor': list(res['sub_scores'].keys()),
+            'Sub-Score (0-100)': list(res['sub_scores'].values()),
+        })
         breakdown_df['Weight'] = breakdown_df['Factor'].map(weight_map)
         breakdown_df['Weighted Contribution'] = (breakdown_df['Sub-Score (0-100)'] * breakdown_df['Weight']).round(2)
         
         st.dataframe(breakdown_df, use_container_width=True)
-        st.bar_chart(breakdown_df.set_index('Factor')['Sub-Score (0-100)'], use_container_width=True)
 
 
 # ========================================================================================
