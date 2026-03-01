@@ -107,6 +107,7 @@ st.markdown("""
         color: var(--text-primary);
         border: 1px solid var(--glass-border);
         box-shadow: var(--shadow-card);
+        text-shadow: 0 1px 2px rgba(0,0,0,0.5);
         transition: all 0.3s ease;
         animation: float-in 0.5s ease-out;
         position: relative;
@@ -305,6 +306,7 @@ st.markdown("""
         text-align: center;
         border: 1px solid var(--glass-border);
         box-shadow: var(--shadow-card);
+        text-shadow: 0 1px 2px rgba(0,0,0,0.5);
         position: relative;
         overflow: hidden;
         animation: float-in 0.5s ease-out;
