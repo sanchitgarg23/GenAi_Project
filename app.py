@@ -99,9 +99,9 @@ st.markdown("""
 
     /* ── Metric Cards (Glass Morphism) ── */
     .metric-card {
-        background: linear-gradient(145deg, var(--bg-card) 0%, rgba(26,31,46,0.85) 100%);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         border-radius: var(--radius-lg);
         padding: 32px 36px;
         color: var(--text-primary);
@@ -297,8 +297,9 @@ st.markdown("""
 
     /* ── Risk Result Card (Prediction) ── */
     .risk-result-card {
-        background: linear-gradient(145deg, var(--bg-card), rgba(26,31,46,0.9));
-        backdrop-filter: blur(12px);
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         border-radius: var(--radius-lg);
         padding: 32px;
         text-align: center;
