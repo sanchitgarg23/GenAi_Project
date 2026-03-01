@@ -12,7 +12,6 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, confu
 # ========================================================================================
 st.set_page_config(
     page_title="Clinical Risk Intelligence",
-    page_icon="🏥",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -439,7 +438,7 @@ def train_clinical_model(_X_scaled, _y_target):
 def render_header():
     st.markdown("""
     <div class="app-header">
-        <h1>🏥 Clinical Risk Intelligence Dashboard</h1>
+        <h1>Clinical Risk Intelligence Dashboard</h1>
         <p>Weighted clinical risk scoring algorithm with ML-powered 30-day readmission prediction</p>
     </div>
     """, unsafe_allow_html=True)
@@ -474,7 +473,7 @@ def render_overview_metrics(df):
     with c3:
         st.markdown(f"""
         <div class="metric-card">
-            <h3>🔴 High Risk</h3>
+            <h3>High Risk</h3>
             <div class="value risk-high">{high_risk:,}</div>
             <div class="sub">{high_risk/total*100:.1f}% of patients</div>
         </div>""", unsafe_allow_html=True)
@@ -482,7 +481,7 @@ def render_overview_metrics(df):
     with c4:
         st.markdown(f"""
         <div class="metric-card">
-            <h3>🟡 Moderate Risk</h3>
+            <h3>Moderate Risk</h3>
             <div class="value risk-moderate">{moderate_risk:,}</div>
             <div class="sub">{moderate_risk/total*100:.1f}% of patients</div>
         </div>""", unsafe_allow_html=True)
@@ -490,7 +489,7 @@ def render_overview_metrics(df):
     with c5:
         st.markdown(f"""
         <div class="metric-card">
-            <h3>🟢 Low Risk</h3>
+            <h3>Low Risk</h3>
             <div class="value risk-low">{low_risk:,}</div>
             <div class="sub">{low_risk/total*100:.1f}% of patients</div>
         </div>""", unsafe_allow_html=True)
@@ -498,7 +497,7 @@ def render_overview_metrics(df):
 
 def render_dashboard_tab(df):
     """Risk distribution charts and analytics."""
-    st.markdown("### 📊 Risk Score Distribution")
+    st.markdown("### Risk Score Distribution")
     
     col1, col2 = st.columns([3, 2])
     
@@ -516,7 +515,7 @@ def render_dashboard_tab(df):
         st.bar_chart(cat_counts, use_container_width=True)
     
     st.markdown("---")
-    st.markdown("### 🔬 Risk Factor Analysis")
+    st.markdown("### Risk Factor Analysis")
     
     col1, col2, col3 = st.columns(3)
     
@@ -543,7 +542,7 @@ def render_dashboard_tab(df):
 
 def render_patient_table_tab(df):
     """Filterable, color-coded patient risk table."""
-    st.markdown("### 📋 Patient Risk Assessment Table")
+    st.markdown("### Patient Risk Assessment Table")
     
     # Filters
     col1, col2, col3 = st.columns(3)
@@ -586,7 +585,7 @@ def render_patient_table_tab(df):
 
 def render_model_tab(metrics):
     """Model performance metrics display."""
-    st.markdown("### 🤖 ML Model Performance (Logistic Regression)")
+    st.markdown("### ML Model Performance (Logistic Regression)")
     st.markdown("*Predicts 30-day hospital readmission using patient clinical features*")
     
     col1, col2, col3, col4 = st.columns(4)
@@ -620,7 +619,7 @@ def render_model_tab(metrics):
 
 def render_prediction_tab(model, scaler, le_gender, feature_names):
     """Individual patient risk prediction form."""
-    st.markdown("### 🩺 Individual Patient Risk Assessment")
+    st.markdown("### Individual Patient Risk Assessment")
     st.markdown("*Enter patient vitals to compute their weighted risk score and ML-based readmission probability*")
     
     col1, col2, col3 = st.columns(3)
@@ -640,7 +639,7 @@ def render_prediction_tab(model, scaler, le_gender, feature_names):
         diabetes = st.selectbox("Diabetes", [0, 1], format_func=lambda x: "Yes" if x else "No")
         hypertension = st.selectbox("Hypertension", [0, 1], format_func=lambda x: "Yes" if x else "No")
     
-    if st.button("⚡ Compute Risk Score", type="primary", use_container_width=True):
+    if st.button("Compute Risk Score", type="primary", use_container_width=True):
         # Weighted risk score
         score, category, sub_scores = compute_single_patient_risk(
             age, gender, bmi, sbp, dbp, glucose, cholesterol, diabetes, hypertension
@@ -679,7 +678,7 @@ def render_prediction_tab(model, scaler, le_gender, feature_names):
             """, unsafe_allow_html=True)
         
         st.markdown("---")
-        st.markdown("#### 📊 Risk Factor Breakdown")
+        st.markdown("#### Risk Factor Breakdown")
         breakdown_df = pd.DataFrame({
             'Factor': list(sub_scores.keys()),
             'Sub-Score (0-100)': list(sub_scores.values()),
@@ -720,10 +719,10 @@ def main():
         
         # Tabs
         tab1, tab2, tab3, tab4 = st.tabs([
-            "📊 Dashboard", 
-            "📋 Patient Risk Table", 
-            "🤖 Model Performance",
-            "🩺 Individual Prediction"
+            "Dashboard", 
+            "Patient Risk Table", 
+            "Model Performance",
+            "Individual Prediction"
         ])
         
         with tab1:
@@ -739,9 +738,9 @@ def main():
             render_prediction_tab(model, scaler, le_gender, feature_names)
     
     except FileNotFoundError as e:
-        st.error(f"❌ {str(e)}")
+        st.error(f"{str(e)}")
     except Exception as e:
-        st.error(f"❌ Pipeline Error: {str(e)}")
+        st.error(f"Pipeline Error: {str(e)}")
         st.exception(e)
 
 
