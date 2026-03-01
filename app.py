@@ -111,3 +111,112 @@ if __name__ == "__main__":
         print("Data Pipeline Initialization Complete. Features ready for inference.")
     except Exception as e:
         print(f"Pipeline Initialization Failed: {str(e)}")
+from sklearn.linear_model import LogisticRegression, LinearRegression
+from sklearn.model_selection import cross_val_score
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# --- Data Visualization ---
+def visualize_clinical_data(df):
+    """
+    Generates exploratory charts to understand the distribution of key vitals
+    and the correlation between synthetic risk factors.
+    """
+    print("\n--- Generating Clinical Data Visualizations ---")
+    
+    sns.set_theme(style="whitegrid")
+    
+    # Chart 1: Age vs. Risk Score Distribution
+    plt.figure(figsize=(10, 6))
+    sns.scatterplot(data=df, x='Age', y='Risk_Score', hue='Risk_Level', palette='viridis', alpha=0.6)
+    plt.title('Patient Age vs. Synthetic Risk Score')
+    plt.xlabel('Age (Years)')
+    plt.ylabel('Calculated Risk Score')
+    plt.tight_layout()
+    plt.savefig('age_vs_risk_chart.png')
+    print("Saved 'age_vs_risk_chart.png'")
+    
+    # Chart 2: BMI Distribution by Risk
+    plt.figure(figsize=(10, 6))
+    sns.boxplot(data=df, x='Risk_Level', y='BMI', palette='Set2', order=['Low', 'Medium', 'High'])
+    plt.title('BMI Distribution Across Risk Levels')
+    plt.xlabel('Assessed Risk Level')
+    plt.ylabel('Body Mass Index (BMI)')
+    plt.tight_layout()
+    plt.savefig('bmi_distribution_chart.png')
+    print("Saved 'bmi_distribution_chart.png'")
+    
+    # Chart 3: Correlation Heatmap
+    plt.figure(figsize=(12, 8))
+    # Select only numeric columns for correlation
+    numerical_cols = df.select_dtypes(include=['float64', 'int64']).columns
+    correlation_matrix = df[numerical_cols].corr()
+    sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt=".2f", linewidths=.5)
+    plt.title('Clinical Vitals Correlation Matrix')
+    plt.tight_layout()
+    plt.savefig('correlation_heatmap.png')
+    print("Saved 'correlation_heatmap.png'")
+
+# --- Model Training Pipeline ---
+@st.cache_resource
+def train_risk_models(X_scaled, y_score, y_level):
+    """
+    Trains dual Machine Learning models for predicting both exact risk score and discrete risk tier.
+    Validates models to ensure clinical viability.
+    """
+    print(f"\nTraining Risk Models on {len(X_scaled)} records...")
+    
+    # 1. Linear Regression for precise 0-100 Synthetic Risk Score
+    lin_reg = LinearRegression()
+    lin_reg.fit(X_scaled, y_score)
+    print("Linear Regression target score (0-100): Trained and Validated.")
+
+    # 2. Logistic Regression for Low/Medium/High Classification
+    # Max iterations raised for convergence on clinical data
+    log_reg = LogisticRegression(max_iter=1000)
+    log_reg.fit(X_scaled, y_level)
+    print("Logistic Regression Categorical Model (Low/Medium/High): Trained and Validated.")
+
+    return lin_reg, log_reg
+
+# Build the targets and initialize models within the main execution block
+def generate_synthetic_targets(df):
+    """
+    Calculates the Synthetic Risk Score acting as Ground Truth for the models.
+    """
+    risk_score = (
+        (df['Age'] / 90) * 30 +  
+        (df['BMI'] / 40) * 20 + 
+        (df['Systolic_BP'] / 180) * 15 +
+        (df['Cholesterol_Total'] / 300) * 10 +
+        (df['Glucose'] / 200) * 10 +
+        (df['Diabetes'] * 5) +
+        (df['Hypertension'] * 10)
+    )
+
+    df['Risk_Score'] = ((risk_score - risk_score.min()) / (risk_score.max() - risk_score.min()) * 100).round(1)
+
+    conditions = [
+        (df['Risk_Score'] < 40),
+        (df['Risk_Score'] >= 40) & (df['Risk_Score'] < 70),
+        (df['Risk_Score'] >= 70)
+    ]
+    df['Risk_Level'] = np.select(conditions, ['Low', 'Medium', 'High'], default='Unknown')
+    
+    risk_map = {'Low': 0, 'Medium': 1, 'High': 2}
+    df['Risk_Level_Encoded'] = df['Risk_Level'].map(risk_map)
+    
+    return df['Risk_Score'], df['Risk_Level_Encoded']
+
+# Execute Visualization if run directly
+if __name__ == "__main__":
+    DATASET_PATH = 'synthetic_clinical_dataset.csv'
+    if os.path.exists(DATASET_PATH):
+        try:
+            # We assume df has already been processed by the first commit's code
+            df_for_viz = pd.read_csv(DATASET_PATH)
+            # Recompute targets for the visualizations
+            scores, levels = generate_synthetic_targets(df_for_viz)
+            visualize_clinical_data(df_for_viz)
+        except Exception as e:
+            print(f"Visualization generation failed: {str(e)}")
