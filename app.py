@@ -628,21 +628,21 @@ def render_prediction_tab(model, scaler, le_gender, feature_names):
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        age = st.number_input("Age", min_value=0, max_value=120, value=55, step=1)
+        age = st.slider("Age", min_value=0, max_value=120, value=55, step=1)
         gender = st.selectbox("Gender", ['Male', 'Female', 'Other'])
-        bmi = st.number_input("BMI", min_value=10.0, max_value=60.0, value=27.5, step=0.1)
+        bmi = st.slider("BMI", min_value=10.0, max_value=60.0, value=27.5, step=0.1)
     
     with col2:
-        sbp = st.number_input("Systolic BP (mmHg)", min_value=70, max_value=250, value=130, step=1)
-        dbp = st.number_input("Diastolic BP (mmHg)", min_value=40, max_value=150, value=85, step=1)
-        glucose = st.number_input("Glucose (mg/dL)", min_value=30.0, max_value=400.0, value=110.0, step=0.1)
+        sbp = st.slider("Systolic BP (mmHg)", min_value=70, max_value=250, value=130, step=1)
+        dbp = st.slider("Diastolic BP (mmHg)", min_value=40, max_value=150, value=85, step=1)
+        glucose = st.slider("Glucose (mg/dL)", min_value=30.0, max_value=400.0, value=110.0, step=0.1)
     
     with col3:
-        cholesterol = st.number_input("Cholesterol (mg/dL)", min_value=80.0, max_value=400.0, value=210.0, step=0.1)
+        cholesterol = st.slider("Cholesterol (mg/dL)", min_value=80.0, max_value=400.0, value=210.0, step=0.1)
         diabetes = st.selectbox("Diabetes", [0, 1], format_func=lambda x: "Yes" if x else "No")
         hypertension = st.selectbox("Hypertension", [0, 1], format_func=lambda x: "Yes" if x else "No")
     
-    if st.button("Compute Risk Score", type="primary", use_container_width=True):
+    if st.button("Calculate", type="primary", use_container_width=True):
         # Weighted risk score
         score, category, sub_scores = compute_single_patient_risk(
             age, gender, bmi, sbp, dbp, glucose, cholesterol, diabetes, hypertension
@@ -658,37 +658,48 @@ def render_prediction_tab(model, scaler, le_gender, feature_names):
         CUSTOM_THRESHOLD = 0.65
         readmission_pred = 1 if readmission_prob >= CUSTOM_THRESHOLD else 0
         
+        st.session_state['prediction_results'] = {
+            'score': score,
+            'category': category,
+            'sub_scores': sub_scores,
+            'readmission_prob': readmission_prob,
+            'readmission_pred': readmission_pred
+        }
+        
+    if 'prediction_results' in st.session_state:
+        res = st.session_state['prediction_results']
+        
         st.markdown("---")
         
         # Results
         col_a, col_b = st.columns(2)
         
         with col_a:
-            risk_color = '#ef4444' if category == 'High' else ('#f59e0b' if category == 'Moderate' else '#22c55e')
+            risk_color = '#ef4444' if res['category'] == 'High' else ('#f59e0b' if res['category'] == 'Moderate' else '#22c55e')
             st.markdown(f"""
             <div class="metric-card" style="text-align: center;">
                 <h3>Weighted Risk Score</h3>
-                <div class="value" style="color: {risk_color}; font-size: 48px;">{score}</div>
-                <div class="sub" style="font-size: 18px; color: {risk_color}; font-weight: 600;">{category} Risk</div>
+                <div class="value" style="color: {risk_color}; font-size: 48px;">{res['score']}</div>
+                <div class="sub" style="font-size: 18px; color: {risk_color}; font-weight: 600;">{res['category']} Risk</div>
             </div>
             """, unsafe_allow_html=True)
         
         with col_b:
-            readmit_color = '#ef4444' if readmission_pred == 1 else '#22c55e'
+            readmit_color = '#ef4444' if res['readmission_pred'] == 1 else '#22c55e'
             st.markdown(f"""
             <div class="metric-card" style="text-align: center;">
                 <h3>ML Readmission Prediction</h3>
-                <div class="value" style="color: {readmit_color}; font-size: 48px;">{readmission_prob*100:.1f}%</div>
-                <div class="sub" style="font-size: 18px; color: {readmit_color}; font-weight: 600;">{'Likely to be Readmitted' if readmission_pred == 1 else 'Unlikely to be Readmitted'}</div>
+                <div class="value" style="color: {readmit_color}; font-size: 48px;">{res['readmission_prob']*100:.1f}%</div>
+                <div class="sub" style="font-size: 18px; color: {readmit_color}; font-weight: 600;">{'Likely to be Readmitted' if res['readmission_pred'] == 1 else 'Unlikely to be Readmitted'}</div>
             </div>
             """, unsafe_allow_html=True)
         
         st.markdown("---")
         st.markdown("#### Risk Factor Breakdown")
         breakdown_df = pd.DataFrame({
-            'Factor': list(sub_scores.keys()),
-            'Sub-Score (0-100)': list(sub_scores.values()),
-            'Weight': [RISK_WEIGHTS[k.lower().replace(' ', '_')] if k.lower().replace(' ', '_') in RISK_WEIGHTS else RISK_WEIGHTS.get(k.lower().replace(' bp', '_bp'), 0) for k in sub_scores.keys()],
+            'Factor': list(res['sub_scores'].keys()),
+            'Sub-Score (0-100)': list(res['sub_scores'].values()),
+            'Weight': [RISK_WEIGHTS[k.lower().replace(' ', '_')] if k.lower().replace(' ', '_') in RISK_WEIGHTS else RISK_WEIGHTS.get(k.lower().replace(' bp', '_bp'), 0) for k in res['sub_scores'].keys()],
         })
         # Fix weight mapping
         weight_map = {
