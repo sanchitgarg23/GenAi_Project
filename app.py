@@ -18,7 +18,7 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap');
 
     /* ── CSS Custom Properties: Medical Dark Theme ── */
     :root {
@@ -103,7 +103,7 @@ st.markdown("""
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
         border-radius: var(--radius-lg);
-        padding: 24px 28px;
+        padding: 32px 36px;
         color: var(--text-primary);
         border: 1px solid var(--glass-border);
         box-shadow: var(--shadow-card);
@@ -140,6 +140,7 @@ st.markdown("""
         text-transform: uppercase;
     }
     .metric-card .value {
+        font-family: 'JetBrains Mono', monospace;
         font-size: 36px;
         font-weight: 800;
         margin: 8px 0 4px;
@@ -308,6 +309,7 @@ st.markdown("""
         animation: float-in 0.5s ease-out;
     }
     .risk-result-card .score-ring {
+        font-family: 'JetBrains Mono', monospace;
         width: 140px; height: 140px;
         border-radius: 50%;
         display: flex;
@@ -389,6 +391,7 @@ st.markdown("""
         transition: width 0.6s ease;
     }
     .subscore-val {
+        font-family: 'JetBrains Mono', monospace;
         width: 45px;
         font-size: 13px;
         font-weight: 600;
