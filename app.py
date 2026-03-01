@@ -405,8 +405,11 @@ def train_clinical_model(_X_scaled, _y_target):
 
     log_reg = LogisticRegression(max_iter=1000, class_weight='balanced')
     log_reg.fit(X_train, y_train)
-    y_pred = log_reg.predict(X_test)
+    
+    # Use custom threshold to improve Precision & Accuracy
     y_prob = log_reg.predict_proba(X_test)[:, 1]
+    CUSTOM_THRESHOLD = 0.65
+    y_pred = (y_prob >= CUSTOM_THRESHOLD).astype(int)
 
     acc = accuracy_score(y_test, y_pred)
     prec = precision_score(y_test, y_pred, zero_division=0)
@@ -650,7 +653,10 @@ def render_prediction_tab(model, scaler, le_gender, feature_names):
         patient_features = np.array([[age, bmi, sbp, dbp, cholesterol, glucose, diabetes, hypertension, gender_encoded]])
         patient_scaled = scaler.transform(patient_features)
         readmission_prob = model.predict_proba(patient_scaled)[0][1]
-        readmission_pred = model.predict(patient_scaled)[0]
+        
+        # Apply custom threshold for prediction
+        CUSTOM_THRESHOLD = 0.65
+        readmission_pred = 1 if readmission_prob >= CUSTOM_THRESHOLD else 0
         
         st.markdown("---")
         
