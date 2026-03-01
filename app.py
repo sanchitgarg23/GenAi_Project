@@ -3,6 +3,9 @@ import numpy as np
 import os
 import streamlit as st
 from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.linear_model import LogisticRegression, LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error, accuracy_score
 
 # --- Data Ingestion & Exploration ---
 @st.cache_data
@@ -102,84 +105,6 @@ def preprocess_features(df):
 
     return df, X_scaled, scaler, le_gender, features
 
-# Note: The raw data is executed here during initialization
-if __name__ == "__main__":
-    DATASET_PATH = 'synthetic_clinical_dataset.csv'
-    try:
-        raw_clinical_data = load_and_explore_data(DATASET_PATH)
-        processed_data, scaled_matrix, feature_scaler, gender_encoder, feature_names = preprocess_features(raw_clinical_data)
-        print("Data Pipeline Initialization Complete. Features ready for inference.")
-    except Exception as e:
-        print(f"Pipeline Initialization Failed: {str(e)}")
-from sklearn.linear_model import LogisticRegression, LinearRegression
-from sklearn.model_selection import cross_val_score
-import matplotlib.pyplot as plt
-import seaborn as sns
-
-# --- Data Visualization ---
-def visualize_clinical_data(df):
-    """
-    Generates exploratory charts to understand the distribution of key vitals
-    and the correlation between synthetic risk factors.
-    """
-    print("\n--- Generating Clinical Data Visualizations ---")
-    
-    sns.set_theme(style="whitegrid")
-    
-    # Chart 1: Age vs. Risk Score Distribution
-    plt.figure(figsize=(10, 6))
-    sns.scatterplot(data=df, x='Age', y='Risk_Score', hue='Risk_Level', palette='viridis', alpha=0.6)
-    plt.title('Patient Age vs. Synthetic Risk Score')
-    plt.xlabel('Age (Years)')
-    plt.ylabel('Calculated Risk Score')
-    plt.tight_layout()
-    plt.savefig('age_vs_risk_chart.png')
-    print("Saved 'age_vs_risk_chart.png'")
-    
-    # Chart 2: BMI Distribution by Risk
-    plt.figure(figsize=(10, 6))
-    sns.boxplot(data=df, x='Risk_Level', y='BMI', palette='Set2', order=['Low', 'Medium', 'High'])
-    plt.title('BMI Distribution Across Risk Levels')
-    plt.xlabel('Assessed Risk Level')
-    plt.ylabel('Body Mass Index (BMI)')
-    plt.tight_layout()
-    plt.savefig('bmi_distribution_chart.png')
-    print("Saved 'bmi_distribution_chart.png'")
-    
-    # Chart 3: Correlation Heatmap
-    plt.figure(figsize=(12, 8))
-    # Select only numeric columns for correlation
-    numerical_cols = df.select_dtypes(include=['float64', 'int64']).columns
-    correlation_matrix = df[numerical_cols].corr()
-    sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt=".2f", linewidths=.5)
-    plt.title('Clinical Vitals Correlation Matrix')
-    plt.tight_layout()
-    plt.savefig('correlation_heatmap.png')
-    print("Saved 'correlation_heatmap.png'")
-
-# --- Model Training Pipeline ---
-@st.cache_resource
-def train_risk_models(X_scaled, y_score, y_level):
-    """
-    Trains dual Machine Learning models for predicting both exact risk score and discrete risk tier.
-    Validates models to ensure clinical viability.
-    """
-    print(f"\nTraining Risk Models on {len(X_scaled)} records...")
-    
-    # 1. Linear Regression for precise 0-100 Synthetic Risk Score
-    lin_reg = LinearRegression()
-    lin_reg.fit(X_scaled, y_score)
-    print("Linear Regression target score (0-100): Trained and Validated.")
-
-    # 2. Logistic Regression for Low/Medium/High Classification
-    # Max iterations raised for convergence on clinical data
-    log_reg = LogisticRegression(max_iter=1000)
-    log_reg.fit(X_scaled, y_level)
-    print("Logistic Regression Categorical Model (Low/Medium/High): Trained and Validated.")
-
-    return lin_reg, log_reg
-
-# Build the targets and initialize models within the main execution block
 def generate_synthetic_targets(df):
     """
     Calculates the Synthetic Risk Score acting as Ground Truth for the models.
@@ -208,15 +133,46 @@ def generate_synthetic_targets(df):
     
     return df['Risk_Score'], df['Risk_Level_Encoded']
 
-# Execute Visualization if run directly
+# --- Model Training Pipeline ---
+@st.cache_resource
+def train_risk_models(X_scaled, y_score, y_level):
+    """
+    Trains dual Machine Learning models for predicting both exact risk score and discrete risk tier.
+    Validates models to ensure clinical viability.
+    """
+    print(f"\nTraining Risk Models on {len(X_scaled)} records...")
+    
+    X_train, X_test, y_score_train, y_score_test, y_level_train, y_level_test = train_test_split(
+        X_scaled, y_score, y_level, test_size=0.2, random_state=42
+    )
+
+    # 1. Linear Regression for precise 0-100 Synthetic Risk Score
+    lin_reg = LinearRegression()
+    lin_reg.fit(X_train, y_score_train)
+    y_score_pred = lin_reg.predict(X_test)
+    mse = mean_squared_error(y_score_test, y_score_pred)
+    print(f"Linear Regression target score (0-100): Trained and Validated. MSE: {mse:.2f}")
+
+    # 2. Logistic Regression for Low/Medium/High Classification
+    # Max iterations raised for convergence on clinical data
+    log_reg = LogisticRegression(max_iter=1000)
+    log_reg.fit(X_train, y_level_train)
+    y_level_pred = log_reg.predict(X_test)
+    acc = accuracy_score(y_level_test, y_level_pred)
+    print(f"Logistic Regression Categorical Model (Low/Medium/High): Trained and Validated. Accuracy: {acc:.2f}")
+
+    return lin_reg, log_reg
+
+# Note: The raw data is executed here during initialization
 if __name__ == "__main__":
     DATASET_PATH = 'synthetic_clinical_dataset.csv'
-    if os.path.exists(DATASET_PATH):
-        try:
-            # We assume df has already been processed by the first commit's code
-            df_for_viz = pd.read_csv(DATASET_PATH)
-            # Recompute targets for the visualizations
-            scores, levels = generate_synthetic_targets(df_for_viz)
-            visualize_clinical_data(df_for_viz)
-        except Exception as e:
-            print(f"Visualization generation failed: {str(e)}")
+    try:
+        raw_clinical_data = load_and_explore_data(DATASET_PATH)
+        processed_data, scaled_matrix, feature_scaler, gender_encoder, feature_names = preprocess_features(raw_clinical_data)
+        
+        scores, levels = generate_synthetic_targets(processed_data)
+        lin_model, log_model = train_risk_models(scaled_matrix, scores, levels)
+        
+        print("Data Pipeline Initialization Complete. Models ready for inference.")
+    except Exception as e:
+        print(f"Pipeline Initialization Failed: {str(e)}")
