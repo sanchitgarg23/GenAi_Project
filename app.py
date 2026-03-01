@@ -62,9 +62,9 @@ st.markdown("""
         50% { border-color: rgba(14,165,233,0.5); }
         100% { border-color: rgba(14,165,233,0.2); }
     }
-    @keyframes critical-pulse {
-        0%, 100% { box-shadow: 0 0 8px rgba(239,68,68,0.3); }
-        50% { box-shadow: 0 0 24px rgba(239,68,68,0.6); }
+    @keyframes breathing {
+        0%, 100% { transform: scale(1); box-shadow: 0 0 8px rgba(239,68,68,0.3); }
+        50% { transform: scale(1.05); box-shadow: 0 0 24px rgba(239,68,68,0.6); }
     }
     @keyframes status-dot {
         0%, 100% { transform: scale(1); opacity: 1; }
@@ -107,7 +107,7 @@ st.markdown("""
         color: var(--text-primary);
         border: 1px solid var(--glass-border);
         box-shadow: var(--shadow-card);
-        transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.3s ease;
+        transition: all 0.3s ease;
         animation: float-in 0.5s ease-out;
         position: relative;
         overflow: hidden;
@@ -122,7 +122,7 @@ st.markdown("""
         opacity: 0.7;
     }
     .metric-card:hover {
-        transform: translateY(-3px);
+        transform: translateY(-5px);
         box-shadow: var(--shadow-card), var(--shadow-glow-teal);
         border-color: var(--border-accent);
     }
@@ -308,6 +308,19 @@ st.markdown("""
         position: relative;
         overflow: hidden;
         animation: float-in 0.5s ease-out;
+        transition: all 0.3s ease;
+    }
+    .risk-result-card:hover {
+        transform: translateY(-5px);
+    }
+    .risk-result-card.glow-red:hover {
+        box-shadow: var(--shadow-card), 0 0 30px rgba(239,68,68,0.4) !important;
+    }
+    .risk-result-card.glow-yellow:hover {
+        box-shadow: var(--shadow-card), 0 0 30px rgba(245,158,11,0.4) !important;
+    }
+    .risk-result-card.glow-green:hover {
+        box-shadow: var(--shadow-card), 0 0 30px rgba(34,197,94,0.4) !important;
     }
     .risk-result-card .score-ring {
         font-family: 'JetBrains Mono', monospace;
@@ -359,7 +372,7 @@ st.markdown("""
         font-weight: 700;
         padding: 4px 10px;
         border-radius: 12px;
-        animation: critical-pulse 1.5s ease-in-out infinite;
+        animation: breathing 2s ease-in-out infinite;
         letter-spacing: 0.5px;
         text-transform: uppercase;
     }
