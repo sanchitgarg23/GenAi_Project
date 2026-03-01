@@ -8,8 +8,7 @@ from sklearn.preprocessing import StandardScaler, LabelEncoder
 @st.cache_data
 def load_and_explore_data(file_path):
     """
-    Ingests the clinical dataset, performs comprehensive Exploratory Data Analysis (EDA),
-    and handles missing/erroneous data before feeding to the ML models.
+    Loads and validates the clinical dataset before ML preprocessing.
     """
     print(f"Loading clinical dataset from: {file_path}")
     if not os.path.exists(file_path):
@@ -18,39 +17,36 @@ def load_and_explore_data(file_path):
     df = pd.read_csv(file_path)
     
     # --- Comprehensive Exploratory Data Analysis (EDA) ---
-    print("\n=============================================")
-    print("      DATASET EXPLORATION & VALIDATION      ")
-    print("=============================================\n")
+  
     
-    # 1. Inspect the first few rows
-    print("--- 1. Data Snapshot (First 5 Rows) ---")
+    # 1. check the first few rows
+
     print(df.head())
     print("\n")
     
     # 2. Check data types and overall info
-    print("--- 2. Dataset Information ---")
     df.info()
     print("\n")
     
     # 3. Statistical summary of the data
-    print("--- 3. Statistical Summary (Numerical Features) ---")
+
     print(df.describe().T)
     print("\n")
     
     # 4. Check for missing values across the dataset
-    print("--- 4. Missing Values Analysis ---")
+
     missing_data = df.isnull().sum()
     print(missing_data[missing_data > 0] if missing_data.sum() > 0 else "No missing values detected.")
     print("\n")
     
     # 5. Check for duplicate records
-    print("--- 5. Duplication Check ---")
+
     duplicates = df.duplicated().sum()
     print(f"Total duplicate records found: {duplicates}")
     if duplicates > 0:
         df = df.drop_duplicates()
         print(f"-> Removed {duplicates} duplicate records.")
-    print("\n=============================================\n")
+
     
     # --- Data Cleaning & Consistency Check ---
     # Drop rows where critical vitals are absolutely required but missing
