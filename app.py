@@ -3,9 +3,9 @@ import numpy as np
 import os
 import streamlit as st
 from sklearn.preprocessing import StandardScaler, LabelEncoder
-from sklearn.linear_model import LogisticRegression, LinearRegression
+from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error, accuracy_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, confusion_matrix, roc_auc_score
 
 # --- Data Ingestion & Exploration ---
 @st.cache_data
@@ -68,7 +68,10 @@ def load_and_explore_data(file_path):
         'cholesterol': 'Cholesterol_Total',
         'glucose': 'Glucose',
         'diabetes': 'Diabetes',
-        'hypertension': 'Hypertension'
+        'hypertension': 'Hypertension',
+        'diagnosis': 'Diagnosis',
+        'readmission_30d': 'Readmission_30d',
+        'mortality': 'Mortality'
     })
     
     # Remove surrogate IDs and timestamps which hold no predictive power
@@ -90,7 +93,7 @@ def preprocess_features(df):
     le_gender = LabelEncoder()
     df['Gender_Encoded'] = le_gender.fit_transform(df['Gender'])
 
-    # 2. Define the exact feature geometry expected by the models
+    # 2. Define the exact feature geometry expected by the models (Excluding target variables and non-predictive categorical col like Diagnosis for now)
     features = [
         'Age', 'BMI', 'Systolic_BP', 'Diastolic_BP', 
         'Cholesterol_Total', 'Glucose', 'Diabetes', 
@@ -98,81 +101,66 @@ def preprocess_features(df):
     ]
     
     X = df[features]
+    
+    # Target variable choice: Readmission_30d
+    y = df['Readmission_30d']
 
     # 3. Apply standard scaling (Z-score normalization)
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
-    return df, X_scaled, scaler, le_gender, features
-
-def generate_synthetic_targets(df):
-    """
-    Calculates the Synthetic Risk Score acting as Ground Truth for the models.
-    """
-    risk_score = (
-        (df['Age'] / 90) * 30 +  
-        (df['BMI'] / 40) * 20 + 
-        (df['Systolic_BP'] / 180) * 15 +
-        (df['Cholesterol_Total'] / 300) * 10 +
-        (df['Glucose'] / 200) * 10 +
-        (df['Diabetes'] * 5) +
-        (df['Hypertension'] * 10)
-    )
-
-    df['Risk_Score'] = ((risk_score - risk_score.min()) / (risk_score.max() - risk_score.min()) * 100).round(1)
-
-    conditions = [
-        (df['Risk_Score'] < 40),
-        (df['Risk_Score'] >= 40) & (df['Risk_Score'] < 70),
-        (df['Risk_Score'] >= 70)
-    ]
-    df['Risk_Level'] = np.select(conditions, ['Low', 'Medium', 'High'], default='Unknown')
-    
-    risk_map = {'Low': 0, 'Medium': 1, 'High': 2}
-    df['Risk_Level_Encoded'] = df['Risk_Level'].map(risk_map)
-    
-    return df['Risk_Score'], df['Risk_Level_Encoded']
+    return df, X_scaled, y, scaler, le_gender, features
 
 # --- Model Training Pipeline ---
 @st.cache_resource
-def train_risk_models(X_scaled, y_score, y_level):
+def train_clinical_model(X_scaled, y_target):
     """
-    Trains dual Machine Learning models for predicting both exact risk score and discrete risk tier.
-    Validates models to ensure clinical viability.
+    Trains a Logistic Regression model to predict readmission_30d.
+    Validates model to ensure clinical viability using standard classification metrics.
     """
-    print(f"\nTraining Risk Models on {len(X_scaled)} records...")
+    print(f"\nTraining Risk Model on {len(X_scaled)} records for Readmission Outcome...")
     
-    X_train, X_test, y_score_train, y_score_test, y_level_train, y_level_test = train_test_split(
-        X_scaled, y_score, y_level, test_size=0.2, random_state=42
+    X_train, X_test, y_train, y_test = train_test_split(
+        X_scaled, y_target, test_size=0.2, random_state=42
     )
 
-    # 1. Linear Regression for precise 0-100 Synthetic Risk Score
-    lin_reg = LinearRegression()
-    lin_reg.fit(X_train, y_score_train)
-    y_score_pred = lin_reg.predict(X_test)
-    mse = mean_squared_error(y_score_test, y_score_pred)
-    print(f"Linear Regression target score (0-100): Trained and Validated. MSE: {mse:.2f}")
+    # 1. Logistic Regression for Binary Classification
+    # using class_weight='balanced' to handle potential class imbalances
+    log_reg = LogisticRegression(max_iter=1000, class_weight='balanced')
+    log_reg.fit(X_train, y_train)
+    y_pred = log_reg.predict(X_test)
+    y_prob = log_reg.predict_proba(X_test)[:, 1]
 
-    # 2. Logistic Regression for Low/Medium/High Classification
-    # Max iterations raised for convergence on clinical data
-    log_reg = LogisticRegression(max_iter=1000)
-    log_reg.fit(X_train, y_level_train)
-    y_level_pred = log_reg.predict(X_test)
-    acc = accuracy_score(y_level_test, y_level_pred)
-    print(f"Logistic Regression Categorical Model (Low/Medium/High): Trained and Validated. Accuracy: {acc:.2f}")
+    # Evaluate Metrics
+    acc = accuracy_score(y_test, y_pred)
+    prec = precision_score(y_test, y_pred)
+    rec = recall_score(y_test, y_pred)
+    cm = confusion_matrix(y_test, y_pred)
+    
+    try:
+        roc_auc = roc_auc_score(y_test, y_prob)
+    except ValueError:
+        roc_auc = "N/A (Only one class present in test set)"
 
-    return lin_reg, log_reg
+    print("\n--- Model Evaluation (Readmission_30d) ---")
+    print(f"Accuracy:  {acc:.4f}")
+    print(f"Precision: {prec:.4f}")
+    print(f"Recall:    {rec:.4f}")
+    print(f"ROC-AUC:   {roc_auc:.4f}")
+    print(f"Confusion Matrix:\n{cm}")
+
+    return log_reg
 
 # Note: The raw data is executed here during initialization
 if __name__ == "__main__":
     DATASET_PATH = 'synthetic_clinical_dataset.csv'
     try:
         raw_clinical_data = load_and_explore_data(DATASET_PATH)
-        processed_data, scaled_matrix, feature_scaler, gender_encoder, feature_names = preprocess_features(raw_clinical_data)
+        processed_data, scaled_matrix, target_variable, feature_scaler, gender_encoder, feature_names = preprocess_features(raw_clinical_data)
         
-        scores, levels = generate_synthetic_targets(processed_data)
-        lin_model, log_model = train_risk_models(scaled_matrix, scores, levels)
+        # Train model specifically for readmission prediction
+        readmission_model = train_clinical_model(scaled_matrix, target_variable)
         
-        print("Data Pipeline Initialization Complete. Models ready for inference.")
+        print("\nData Pipeline Initialization Complete. Model ready for inference.")
     except Exception as e:
         print(f"Pipeline Initialization Failed: {str(e)}")
