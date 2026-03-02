@@ -74,8 +74,8 @@ This project involves the design and implementation of an **AI-based healthcare 
 ### Setup Steps
 1.  **Clone the Repository**
     ```bash
-    git clone https://github.com/tnshgarg/genai_project_3_healthcare.git
-    cd genai_project_3_healthcare
+    git clone https://github.com/sanchitgarg23/GenAi_Project.git
+    cd GenAi_Project
     ```
 
 2.  **Install Dependencies**
@@ -103,6 +103,7 @@ The application will launch in your default web browser (typically at `http://lo
     - **Diastolic BP**: Diastolic Blood Pressure (mm Hg).
     - **Glucose**: Blood Glucose Level (mg/dL).
     - **Cholesterol**: Total Cholesterol (mg/dL).
+    - **Creatinine**: Serum Creatinine Level (mg/dL).
     - **Diabetes**: Diagnosis status (Yes/No).
     - **Hypertension**: Diagnosis status (Yes/No).
 
@@ -111,7 +112,6 @@ The application will launch in your default web browser (typically at `http://lo
 3.  **View Results**: The "Analysis Report" section will display:
     - **Risk Score**: A numerical value representing the calculated health risk.
     - **Risk Level**: A categorical assessment (Low, Medium, High).
-    - **Key Risk Drivers**: Top factors contributing to this patient's risk.
     - **Recommendation**: A brief medical recommendation based on the risk level.
 
 4.  **Model Performance**: Scroll down to view model evaluation metrics, confusion matrix, and feature importance chart.
