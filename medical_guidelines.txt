@@ -1,0 +1,40 @@
+## Cardiovascular Health & Hypertension Guidelines
+
+1. **Low Risk Management (Risk Score < 40)**:
+   - **Diet**: Encourage a diet rich in fruits, vegetables, whole grains, and lean proteins (e.g., DASH diet or Mediterranean diet). Limit sodium to less than 2,300 mg per day.
+   - **Exercise**: Recommend at least 150 minutes of moderate-intensity aerobic activity per week.
+   - **Monitoring**: Annual blood pressure check. Blood tests (cholesterol, fasting glucose) every 4-6 years.
+   - **Action**: No immediate medication required. Focus on maintaining a healthy lifestyle.
+
+2. **Medium Risk Management (Risk Score 40-70)**:
+   - **Diet**: Strict adherence to the DASH diet. Limit sodium to 1,500 mg per day. Increase potassium-rich foods (unless contraindicated by kidney disease).
+   - **Exercise**: 150-300 minutes of moderate-intensity aerobic activity per week, plus muscle-strengthening activities.
+   - **Monitoring**: Blood pressure checks every 3-6 months. Annual blood tests (lipid profile, HbA1c, comprehensive metabolic panel).
+   - **Action**: Consider lifestyle interventions for 3-6 months. If blood pressure or cholesterol levels remain elevated, initiate low-dose statin therapy or anti-hypertensive medication (e.g., ACE inhibitors or Calcium Channel Blockers).
+
+3. **High Risk Management (Risk Score > 70)**:
+   - **Diet**: Immediate dietary overhaul. Severe restriction of saturated fats, trans fats, and sodium (<1,500 mg/day).
+   - **Exercise**: Medically supervised exercise program (cardiac rehabilitation) if appropriate.
+   - **Monitoring**: Frequent monitoring (every 1-3 months). Regular ECG, comprehensive blood panels, and specialist consultations.
+   - **Action**: Immediate initiation of pharmacotherapy. Combination therapy for blood pressure (e.g., ACE inhibitor + Thiazide diuretic). High-intensity statin therapy regardless of baseline LDL. Aspirin therapy may be considered based on overall bleeding risk.
+   - **Intervention**: Immediate referral to a cardiologist or relevant specialist.
+
+## Diabetes Management Guidelines
+
+1. **Pre-diabetes (Fasting Glucose 100-125 mg/dL)**:
+   - **Intervention**: Intensive lifestyle modification. Target 7% body weight loss if overweight. Metformin may be considered for high-risk individuals (e.g., BMI > 35, age < 60, women with prior gestational diabetes).
+
+2. **Type 2 Diabetes (Fasting Glucose >= 126 mg/dL)**:
+   - **First-line Therapy**: Metformin and comprehensive lifestyle changes (weight management, physical activity).
+   - **Second-line Therapy**: Add additional agents (GLP-1 RA, SGLT2 inhibitors) based on atherosclerotic cardiovascular disease (ASCVD), heart failure, or chronic kidney disease (CKD) risk.
+   - **Monitoring**: Regular HbA1c checks every 3-6 months, annual eye exams, foot exams, and kidney function tests (urine albumin and eGFR).
+
+## Chronic Kidney Disease (CKD) based on Creatinine
+
+1. **Mildly Elevated Creatinine**:
+   - Focus on blood pressure and glucose control. Avoid nephrotoxic agents (e.g., NSAIDs). 
+   - Optimize hydration and limit protein intake to recommended daily allowances.
+
+2. **Significantly Elevated Creatinine / Established CKD**:
+   - Use ACE inhibitors or ARBs for renal protection, especially in the presence of albuminuria.
+   - Regular monitoring of electrolytes (potassium, calcium, phosphorus) and kidney function. Nephrology referral may be indicated.

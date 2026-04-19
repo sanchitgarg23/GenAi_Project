@@ -84,7 +84,7 @@ This project involves the design and implementation of an **AI-based healthcare 
     ```
 
 3.  **Verify Dataset**
-    Ensure that `cardio_train.csv` is present in the project root directory. This file is required for model training.
+    Ensure that `synthetic_clinical_dataset.csv` is present in the project root directory. This file is required for model training.
 
 ## Usage
 
@@ -97,20 +97,20 @@ The application will launch in your default web browser (typically at `http://lo
 ### Using the Interface
 1.  **Patient Vitals**: Enter the patient's information in the "Patient Vitals" section.
     - **Age**: Patient age in years.
-    - **Gender**: Biological sex (Female/Male).
+    - **Gender**: Biological sex.
     - **BMI**: Body Mass Index.
-    - **Systolic BP**: Systolic Blood Pressure (mmHg).
-    - **Diastolic BP**: Diastolic Blood Pressure (mmHg).
-    - **Cholesterol**: Total Cholesterol (mg/dL) — mapped internally to Normal/Above Normal/Well Above Normal.
-    - **Glucose**: Blood Glucose Level (mg/dL) — mapped internally to Normal/Above Normal/Well Above Normal.
-    - **Smoker**: Smoking status (Yes/No).
-    - **Alcohol Consumption**: Alcohol intake status (Yes/No).
-    - **Physically Active**: Physical activity status (Yes/No).
+    - **Systolic BP**: Systolic Blood Pressure (mm Hg).
+    - **Diastolic BP**: Diastolic Blood Pressure (mm Hg).
+    - **Glucose**: Blood Glucose Level (mg/dL).
+    - **Cholesterol**: Total Cholesterol (mg/dL).
+    - **Creatinine**: Serum Creatinine Level (mg/dL).
+    - **Diabetes**: Diagnosis status (Yes/No).
+    - **Hypertension**: Diagnosis status (Yes/No).
 
-2.  **Analyze**: Click the **Predict Risk** button.
+2.  **Analyze**: Click the **CALCULATE RISK ASSESSMENT** button.
 
-3.  **View Results**: The "Analysis Results" section will display:
-    - **Cardiovascular Risk Score**: A percentage value representing the predicted cardiovascular disease risk.
+3.  **View Results**: The "Analysis Report" section will display:
+    - **Risk Score**: A numerical value representing the calculated health risk.
     - **Risk Level**: A categorical assessment (Low, Medium, High).
     - **Recommendation**: A brief medical recommendation based on the risk level.
 
@@ -120,37 +120,31 @@ The application will launch in your default web browser (typically at `http://lo
 
 ## Technical Implementation
 
-### Dataset
-The system uses the **Cardiovascular Disease dataset** (`cardio_train.csv`) containing **70,000 real patient records** from a medical examination study. After preprocessing and outlier removal, approximately **68,600 records** are used for training.
-
 ### Data Pipeline
-1.  **Data Loading**: Loads cardiovascular data from `cardio_train.csv` (semicolon-separated, 70,000 patient records).
+1.  **Data Loading**: Loads clinical data from `synthetic_clinical_dataset.csv` (10,000 patient records).
 2.  **Preprocessing**:
-    - Drops the `id` column (not clinically relevant).
-    - Converts age from **days to years** (original dataset stores age in days).
-    - Computes **BMI** from height (cm) and weight (kg): `BMI = weight / (height/100)²`.
-    - Filters **blood pressure outliers** (Systolic: 70–250 mmHg, Diastolic: 40–150 mmHg, Systolic > Diastolic).
-    - Filters **BMI outliers** (valid range: 10–60).
-    - Encodes categorical variables (Gender: 1=Female, 2=Male → LabelEncoded).
-    - Maps user-entered Cholesterol (mg/dL) → categories: Normal (<200), Above Normal (200–239), Well Above Normal (≥240).
-    - Maps user-entered Glucose (mg/dL) → categories: Normal (<100), Above Normal (100–125), Well Above Normal (≥126).
+    - Drops non-clinical columns (patient_id, diagnosis, readmission_30d, mortality).
+    - Renames columns to standard formats.
+    - Encodes categorical variables (Gender: Male/Female → 0/1).
     - Handles missing values via `dropna()`.
     - Standardizes numerical features using `StandardScaler`.
 3.  **Train/Test Split**: 80/20 split with `random_state=42` for reproducibility.
 
 ### Risk Scoring Logic
-The system uses the **Logistic Regression probability output** to calculate cardiovascular disease risk. The model's `predict_proba()` method returns the probability of cardiovascular disease (class 1), which is converted to a percentage risk score:
-- **Low Risk** (< 40%): Maintain Healthy Lifestyle
-- **Medium Risk** (40–70%): Regular Monitoring Advised
-- **High Risk** (> 70%): Immediate Medical Attention Recommended
+The system calculates a Risk Score adapted from the **Framingham Risk Score** framework (D'Agostino et al., 2008), a widely-used clinical tool for cardiovascular risk assessment. The adapted formula combines:
+- Age (normalized, 25% weight)
+- Systolic BP (normalized, 20% weight)
+- BMI (normalized, 15% weight)
+- Cholesterol and Glucose (normalized, 10% each)
+- Creatinine (normalized, 5% weight)
+- Diabetes (8%) and Hypertension (7%) penalties
 
 ### Machine Learning Models
-1.  **Linear Regression**: Predicts continuous Systolic Blood Pressure values from other patient features (R² ≈ 0.56).
-2.  **Logistic Regression**: Binary classification predicting cardiovascular disease risk (Accuracy ≈ 72.7%).
-3.  **Decision Tree Classifier**: Alternative classification model for comparison (Accuracy ≈ 73.4%).
+1.  **Linear Regression**: Predicts continuous Risk Score (0–100).
+2.  **Logistic Regression (Multinomial)**: Classifies patients into Low (<40), Medium (40–70), or High (>70) risk levels.
 
 ### Project Structure
 - `app.py`: Main Streamlit application with UI, data pipeline, model training, metrics display, and prediction logic.
 - `requirements.txt`: Python dependencies.
-- `cardio_train.csv`: 70,000-record cardiovascular disease dataset from medical examination data.
+- `synthetic_clinical_dataset.csv`: 10,000-record synthetic clinical dataset.
 - `report.tex`: LaTeX project report with methodology and results.
