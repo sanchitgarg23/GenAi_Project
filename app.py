@@ -331,9 +331,12 @@ with tab2:
                     prompt = "Based on my patient profile and risk score, retrieve guidelines and generate a personalized health management report."
                     from langchain_core.messages import HumanMessage
                     
-                    st.session_state.chat_history.append(HumanMessage(content=prompt))
-                    resp_meta = chat_with_agent(context, risk, prompt, st.session_state.chat_history[:-1])
-                    st.session_state.chat_history.append(resp_meta)
+                    try:
+                        resp_meta = chat_with_agent(context, risk, prompt, st.session_state.chat_history[:-1])
+                        st.session_state.chat_history.append(resp_meta)
+                    except Exception as e:
+                        st.error(f"Agent Service Unavailable: Please check API keys or vector index. Details: {str(e)}")
+                        st.session_state.chat_history.pop() # Remove the prompt if it failed
                     st.rerun()
 
         if user_query := st.chat_input("Ask the AI about treatment, diet, or risks..."):
@@ -345,8 +348,12 @@ with tab2:
                 from langchain_core.messages import HumanMessage
                 st.session_state.chat_history.append(HumanMessage(content=user_query))
                 
-                resp_meta = chat_with_agent(context, risk, user_query, st.session_state.chat_history[:-1])
-                st.session_state.chat_history.append(resp_meta)
+                try:
+                    resp_meta = chat_with_agent(context, risk, user_query, st.session_state.chat_history[:-1])
+                    st.session_state.chat_history.append(resp_meta)
+                except Exception as e:
+                    st.error(f"Agent Service Unavailable: Please check API keys or vector index. Details: {str(e)}")
+                    st.session_state.chat_history.pop() # Remove the message if generation failed
                 st.rerun()
 
 # ================================

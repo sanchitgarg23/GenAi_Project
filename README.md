@@ -5,8 +5,13 @@
 ### Project Overview
 This project involves the design and implementation of an **AI-based healthcare analytics system** that predicts patient health risks and evolves into an agentic health support assistant.
 
-- **Milestone 1:** Classical machine learning techniques applied to structured clinical patient data to predict health risks such as disease likelihood, using supervised learning models (Linear Regression & Logistic Regression).
+- **Milestone 1:** Classical machine learning techniques applied to structured clinical patient data to predict health risks such as disease likelihood, using supervised learning models (Logistic Regression & Decision Trees).
 - **Milestone 2:** Extension into an agent-based AI application that autonomously reasons about patient risk profiles, retrieves medical guidelines (RAG), and generates structured health summaries with preventive care recommendations.
+
+---
+
+### Project Links
+- **🔴 Live Demo App:** [MediRisk GenAI Web App](https://medirisk-genai.streamlit.app/)
 
 ---
 
@@ -21,7 +26,7 @@ This project involves the design and implementation of an **AI-based healthcare 
 ### Technology Stack
 | Component | Technology |
 | :--- | :--- |
-| **ML Models (M1)** | Logistic Regression, Linear Regression, Scikit-Learn |
+| **ML Models (M1)** | Logistic Regression, Decision Trees, Scikit-Learn |
 | **Agent Framework (M2)** | LangGraph, Chroma/FAISS (RAG) |
 | **UI Framework** | Streamlit |
 | **LLMs (M2)** | Open-source models or Free-tier APIs |
@@ -140,8 +145,8 @@ The system calculates a Risk Score adapted from the **Framingham Risk Score** fr
 - Diabetes (8%) and Hypertension (7%) penalties
 
 ### Machine Learning Models
-1.  **Linear Regression**: Predicts continuous Risk Score (0–100).
-2.  **Logistic Regression (Multinomial)**: Classifies patients into Low (<40), Medium (40–70), or High (>70) risk levels.
+1.  **Logistic Regression**: Predicts continuous Risk Score (0–100) using classification probability estimates.
+2.  **Decision Tree Classifier**: Interpretable backup model for categorical risk assessment.
 
 ### Project Structure
 - `app.py`: Main Streamlit application with UI, data pipeline, model training, metrics display, and prediction logic.
