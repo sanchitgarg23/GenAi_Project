@@ -6,11 +6,11 @@ import seaborn as sns
 import os
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder
-from sklearn.linear_model import LogisticRegression, LinearRegression
+from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import (
-    accuracy_score, mean_squared_error, r2_score,
-    confusion_matrix, classification_report, mean_absolute_error
+    accuracy_score, precision_score, recall_score, f1_score,
+    confusion_matrix, classification_report, roc_curve, auc
 )
 
 # Import the new LangGraph agent workflow
@@ -21,8 +21,7 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 # --- PAGE CONFIGURATION & CUSTOM CSS (WOW FACTOR) ---
 st.set_page_config(
-    page_title="MediRisk | Agentic Healthcare",
-    page_icon="🧬",
+    page_title="MediRisk | Healthcare Platform",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -30,71 +29,69 @@ st.set_page_config(
 # Custom CSS for a premium dark-glassmorphism aesthetic
 premium_css = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 html, body, [class*="css"] {
-    font-family: 'Outfit', sans-serif !important;
+    font-family: 'Inter', sans-serif !important;
 }
 
-[data-testid="stAppViewContainer"] {
-    background: radial-gradient(circle at top left, #0b132b, #1c2541, #0a0f25);
-    color: #e0e6ed;
+/* Professional Glassmorphic Cards */
+.glass-card {
+    border-radius: 16px;
+    padding: 28px;
+    background: var(--secondary-background-color);
+    border: 1px solid rgba(150, 150, 150, 0.1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-[data-testid="stSidebar"] {
-    background: linear-gradient(180deg, #121c3b, #0d142b);
-    border-right: 1px solid rgba(255, 255, 255, 0.05);
+.glass-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
 }
 
+/* Beautiful Tabs */
 .stTabs [data-baseweb="tab-list"] {
-    gap: 24px;
-    background-color: transparent;
+    gap: 16px;
 }
 .stTabs [data-baseweb="tab"] {
-    height: 50px;
-    white-space: pre-wrap;
-    background-color: rgba(25, 35, 65, 0.6);
-    border-radius: 8px 8px 0px 0px;
-    gap: 10px;
-    padding: 10px 20px;
-    color: #8c9eff !important;
-    font-weight: 600;
-    transition: 0.3s ease;
-    border-bottom: 2px solid transparent;
+    height: 54px;
+    border-radius: 12px 12px 0px 0px;
+    padding: 12px 24px;
+    font-weight: 500;
+    background-color: var(--secondary-background-color);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(150, 150, 150, 0.1);
+    border-bottom: none;
+    opacity: 0.7;
 }
+
 .stTabs [aria-selected="true"] {
-    background-color: rgba(60, 85, 170, 0.4) !important;
-    border-bottom: 2px solid #5c7cfa !important;
-    color: #ffffff !important;
-    text-shadow: 0px 0px 10px rgba(92, 124, 250, 0.5);
+    background-color: transparent !important;
+    border-bottom: 3px solid #4361ee !important;
+    color: #4361ee !important;
+    opacity: 1;
 }
 
 div[data-testid="stMetricValue"] {
-    color: #4cd137 !important;
-    font-weight: 700 !important;
-    font-size: 2.2rem !important;
+    color: var(--primary-color) !important;
+    font-weight: 600 !important;
 }
 
-.st-emotion-cache-1wivap2 {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(10px);
-}
-
-button.st-emotion-cache-12w0qtp {
-    background: linear-gradient(135deg, #4361ee, #3a0ca3);
+/* Primary Button Styling with Micro-animation */
+button[kind="primary"] {
+    background: linear-gradient(135deg, #4361ee, #3f37c9);
     color: white !important;
     border: none;
-    border-radius: 8px;
+    border-radius: 10px;
     font-weight: 600;
-    transition: all 0.3s ease;
+    letter-spacing: 0.5px;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 4px 15px rgba(67, 97, 238, 0.2);
 }
 
-button.st-emotion-cache-12w0qtp:hover {
-    box-shadow: 0px 0px 15px rgba(67, 97, 238, 0.5);
+button[kind="primary"]:hover {
+    box-shadow: 0 8px 25px rgba(67, 97, 238, 0.4);
     transform: translateY(-2px);
 }
 
@@ -102,17 +99,15 @@ button.st-emotion-cache-12w0qtp:hover {
     background: transparent !important;
 }
 
-h1, h2, h3 {
-    color: #f8f9fa !important;
-    font-weight: 700 !important;
-}
-
-h1.st-emotion-cache-10trblm {
+h1.main-title {
     text-align: center;
-    background: -webkit-linear-gradient(45deg, #4cc9f0, #4361ee);
+    background: linear-gradient(45deg, #4cc9f0, #4361ee);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    padding-bottom: 20px;
+    padding-bottom: 10px;
+    font-weight: 800;
+    font-size: 3.5rem;
+    letter-spacing: -1.5px;
 }
 </style>
 """
@@ -168,9 +163,21 @@ def train_models(df):
 
     # Metrics
     y_clf_pred = log_reg.predict(X_test_scaled_clf)
+    y_clf_prob = log_reg.predict_proba(X_test_scaled_clf)[:, 1]
+    
+    fpr, tpr, _ = roc_curve(y_test_clf, y_clf_prob)
+    roc_auc = auc(fpr, tpr)
+    
     metrics = {
         'accuracy': accuracy_score(y_test_clf, y_clf_pred),
+        'precision': precision_score(y_test_clf, y_clf_pred),
+        'recall': recall_score(y_test_clf, y_clf_pred),
+        'f1': f1_score(y_test_clf, y_clf_pred),
+        'roc_auc': roc_auc,
+        'fpr': fpr,
+        'tpr': tpr,
         'conf_matrix': confusion_matrix(y_test_clf, y_clf_pred),
+        'class_report': classification_report(y_test_clf, y_clf_pred, output_dict=True),
         'coefficients': log_reg.coef_[0]
     }
     return log_reg, dt_clf, scaler_clf, le_gender, features_clf, metrics
@@ -179,8 +186,8 @@ def train_models(df):
 FILE_PATH = 'synthetic_clinical_dataset.csv'
 raw_df = load_data(FILE_PATH)
 
-st.title("🧬 MediRisk Agentic Health System")
-st.markdown("<p style='text-align: center; color: #a1a1aa;'>Predictive Risk Modeling integrated with RAG-powered Agentic Support</p>", unsafe_allow_html=True)
+st.markdown("<h1 class='main-title'>MediRisk Agentic Health System</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: var(--text-color); opacity: 0.7; font-size: 1.1rem; margin-top: -10px;'>Predictive Risk Modeling integrated with RAG-powered Agentic Support</p>", unsafe_allow_html=True)
 st.write("---")
 
 if raw_df is None:
@@ -192,7 +199,39 @@ log_reg, dt_clf, scaler_clf, le_gender, features_clf, metrics = train_models(df)
 
 
 # --- TABS LAYOUT ---
-tab1, tab2, tab3 = st.tabs(["🔮 Phase 1: AI Predictor", "🩺 Phase 2: Agentic Chat", "📊 Model Telemetry"])
+tab_dash, tab1, tab2, tab3 = st.tabs(["Dashboard", "Phase 1: AI Predictor", "Phase 2: Agentic Chat", "Model Telemetry"])
+
+# ================================
+# TAB 0: DASHBOARD
+# ================================
+with tab_dash:
+    st.subheader("Global Project Metrics", anchor=False)
+    
+    dcol1, dcol2, dcol3, dcol4 = st.columns(4)
+    metric_style = "text-align:center; padding: 25px 10px; border-radius: 16px; background: var(--secondary-background-color); border: 1px solid rgba(150,150,150,0.1); box-shadow: 0 4px 15px rgba(0,0,0,0.05);"
+    with dcol1:
+        st.markdown(f"<div style='{metric_style}'><h1 style='margin:0; color:#4361ee; font-size:3.5rem;'>{metrics['accuracy']*100:.1f}%</h1><p style='margin:0; font-weight:600; opacity:0.7; letter-spacing:1px;'>ACCURACY</p></div>", unsafe_allow_html=True)
+    with dcol2:
+        st.markdown(f"<div style='{metric_style}'><h1 style='margin:0; color:#4361ee; font-size:3.5rem;'>{metrics['precision']*100:.1f}%</h1><p style='margin:0; font-weight:600; opacity:0.7; letter-spacing:1px;'>PRECISION</p></div>", unsafe_allow_html=True)
+    with dcol3:
+        st.markdown(f"<div style='{metric_style}'><h1 style='margin:0; color:#4361ee; font-size:3.5rem;'>{metrics['recall']*100:.1f}%</h1><p style='margin:0; font-weight:600; opacity:0.7; letter-spacing:1px;'>RECALL</p></div>", unsafe_allow_html=True)
+    with dcol4:
+        st.markdown(f"<div style='{metric_style}'><h1 style='margin:0; color:#4361ee; font-size:3.5rem;'>{metrics['f1']*100:.1f}%</h1><p style='margin:0; font-weight:600; opacity:0.7; letter-spacing:1px;'>F1 SCORE</p></div>", unsafe_allow_html=True)
+
+    st.write("---")
+    st.subheader("Pipeline Architecture", anchor=False)
+    pcol1, pcol2, pcol3, pcol4 = st.columns(4)
+    step_style = "text-align:center; padding: 25px 15px; min-height: 180px; border-radius: 16px; background: var(--secondary-background-color); border: 1px solid rgba(67, 97, 238, 0.3); box-shadow: 0 4px 15px rgba(67, 97, 238, 0.05);"
+    
+    with pcol1:
+        st.markdown(f"<div style='{step_style}'><div style='background:linear-gradient(135deg, #4361ee, #3f37c9); color:white; width:45px; height:45px; border-radius:50%; line-height:45px; margin:0 auto 15px auto; font-weight:bold; box-shadow: 0 4px 10px rgba(67,97,238,0.4);'>1</div><h4 style='margin:0; font-weight:700;'>Input</h4><p style='font-size:0.85rem; opacity:0.8; margin-top:8px;'>Configure patient vitals via clinical predictor</p></div>", unsafe_allow_html=True)
+    with pcol2:
+        st.markdown(f"<div style='{step_style}'><div style='background:linear-gradient(135deg, #4361ee, #3f37c9); color:white; width:45px; height:45px; border-radius:50%; line-height:45px; margin:0 auto 15px auto; font-weight:bold; box-shadow: 0 4px 10px rgba(67,97,238,0.4);'>2</div><h4 style='margin:0; font-weight:700;'>ML Pipeline</h4><p style='font-size:0.85rem; opacity:0.8; margin-top:8px;'>Feature engineering, scaling & classification inference</p></div>", unsafe_allow_html=True)
+    with pcol3:
+        st.markdown(f"<div style='{step_style}'><div style='background:linear-gradient(135deg, #4361ee, #3f37c9); color:white; width:45px; height:45px; border-radius:50%; line-height:45px; margin:0 auto 15px auto; font-weight:bold; box-shadow: 0 4px 10px rgba(67,97,238,0.4);'>3</div><h4 style='margin:0; font-weight:700;'>Risk Analysis</h4><p style='font-size:0.85rem; opacity:0.8; margin-top:8px;'>Mortality probability logic & categorical extraction</p></div>", unsafe_allow_html=True)
+    with pcol4:
+        st.markdown(f"<div style='{step_style}'><div style='background:linear-gradient(135deg, #4361ee, #3f37c9); color:white; width:45px; height:45px; border-radius:50%; line-height:45px; margin:0 auto 15px auto; font-weight:bold; box-shadow: 0 4px 10px rgba(67,97,238,0.4);'>4</div><h4 style='margin:0; font-weight:700;'>AI Agent</h4><p style='font-size:0.85rem; opacity:0.8; margin-top:8px;'>LangGraph + FAISS generates tailored health strategy</p></div>", unsafe_allow_html=True)
+
 
 # ================================
 # TAB 1: PHASE 1 MODELING
@@ -219,7 +258,7 @@ with tab1:
         diabetes = 1 if diabetes_input == "Yes" else 0
         hypertension = 1 if hypertension_input == "Yes" else 0
         
-        submitted = st.form_submit_button("Engage Predictive Models 🚀")
+        submitted = st.form_submit_button("Engage Predictive Models")
 
     if submitted:
         gender_encoded = le_gender.transform([gender])[0]
@@ -252,26 +291,26 @@ with tab1:
         st.write("---")
         mcol1, mcol2 = st.columns(2)
         with mcol1:
-            st.markdown(f"<div style='padding: 20px; border-radius: 12px; background: rgba(0,0,0,0.2); border-left: 5px solid {p_color};'>"
-                        f"<h3 style='margin:0;'>Mortality Risk Score</h3>"
-                        f"<h1 style='margin:0; color:{p_color}; font-size:48px;'>{risk_score:.1f}%</h1>"
+            st.markdown(f"<div class='glass-card' style='border-left: 6px solid {p_color};'>"
+                        f"<p style='margin:0; font-size:0.9rem; font-weight:600; text-transform:uppercase; letter-spacing:1px; opacity:0.8;'>Mortality Risk Score</p>"
+                        f"<h1 style='margin:0; color:{p_color}; font-size:3.5rem; font-weight:800;'>{risk_score:.1f}%</h1>"
                         f"</div>", unsafe_allow_html=True)
         with mcol2:
-            st.markdown(f"<div style='padding: 20px; border-radius: 12px; background: rgba(0,0,0,0.2); border-left: 5px solid {p_color};'>"
-                        f"<h3 style='margin:0;'>Assessment Level</h3>"
-                        f"<h1 style='margin:0; color:{p_color}; font-size:48px;'>{predicted_level}</h1>"
+            st.markdown(f"<div class='glass-card' style='border-left: 6px solid {p_color};'>"
+                        f"<p style='margin:0; font-size:0.9rem; font-weight:600; text-transform:uppercase; letter-spacing:1px; opacity:0.8;'>Assessment Level</p>"
+                        f"<h1 style='margin:0; color:{p_color}; font-size:3.5rem; font-weight:800;'>{predicted_level}</h1>"
                         f"</div>", unsafe_allow_html=True)
             
-        st.success("✅ ML Analysis Complete! Head over to **Phase 2: Agentic Chat** to receive an autonomous RAG-powered healthcare plan.", icon="🤖")
+        st.success("ML Analysis Complete! Head over to Phase 2: Agentic Chat to receive an autonomous RAG-powered healthcare plan.")
 
 # ================================
 # TAB 2: PHASE 2 AGENTIC CHAT
 # ================================
 with tab2:
-    st.subheader("🤖 LangGraph Agentic Support", anchor=False)
+    st.subheader("LangGraph Agentic Support", anchor=False)
     
     if st.session_state.risk_score is None:
-        st.info("⚠️ Please complete the Phase 1 Predictive Assessment first to initialize the Agent context.", icon="ℹ️")
+        st.info("Please complete the Phase 1 Predictive Assessment first to initialize the Agent context.")
     else:
         st.markdown(f"**Current Patient Profile:** `{st.session_state.patient_context}`")
         st.markdown(f"**Identified Risk Score:** `{st.session_state.risk_score:.1f}%`")
@@ -314,36 +353,42 @@ with tab2:
 # TAB 3: TELEMETRY (Model Stats)
 # ================================
 with tab3:
-    st.subheader("Model Telemetry & Performance Checks", anchor=False)
+    st.subheader("In-Depth Model Telemetry", anchor=False)
+    
     tcol1, tcol2 = st.columns(2)
     with tcol1:
-        st.markdown("##### Logistic Regression Metrics")
-        st.write(f"**Base Accuracy:** {metrics['accuracy']*100:.2f}%")
-        
         st.markdown("##### Confusion Matrix")
-        fig_cm, ax_cm = plt.subplots(figsize=(5, 3))
-        # Ensure plot has dark background aesthetic
-        fig_cm.patch.set_facecolor('#0f172a')
-        ax_cm.set_facecolor('#0f172a')
-        sns.heatmap(metrics['conf_matrix'], annot=True, fmt='d', cmap='mako',
+        fig_cm, ax_cm = plt.subplots(figsize=(5, 4))
+        sns.heatmap(metrics['conf_matrix'], annot=True, fmt='d', cmap='Blues',
                     xticklabels=['Survived', 'Deceased'],
                     yticklabels=['Survived', 'Deceased'], ax=ax_cm)
-        ax_cm.tick_params(colors='white')
-        ax_cm.set_xlabel('Predicted', color='white')
-        ax_cm.set_ylabel('Actual', color='white')
+        ax_cm.set_xlabel('Predicted')
+        ax_cm.set_ylabel('Actual')
         st.pyplot(fig_cm)
         
+        st.markdown("##### Full Classification Report")
+        cr_df = pd.DataFrame(metrics['class_report']).transpose()
+        st.dataframe(cr_df.style.background_gradient(cmap='Blues').format(precision=3), use_container_width=True)
+        
     with tcol2:
+        st.markdown("##### ROC Curve (AUC = {:.3f})".format(metrics['roc_auc']))
+        fig_roc, ax_roc = plt.subplots(figsize=(5, 4))
+        ax_roc.plot(metrics['fpr'], metrics['tpr'], color='#4361ee', lw=2, label=f"ROC curve (area = {metrics['roc_auc']:.2f})")
+        ax_roc.plot([0, 1], [0, 1], color='gray', lw=1, linestyle='--')
+        ax_roc.set_xlim([0.0, 1.0])
+        ax_roc.set_ylim([0.0, 1.05])
+        ax_roc.set_xlabel('False Positive Rate')
+        ax_roc.set_ylabel('True Positive Rate')
+        ax_roc.legend(loc="lower right")
+        st.pyplot(fig_roc)
+        
         st.markdown("##### Feature Importance (Logistic Reg Coefficients)")
         coefs = metrics['coefficients']
         sorted_idx = np.argsort(np.abs(coefs))[::-1]
         
         fig_fi, ax_fi = plt.subplots(figsize=(5, 4))
-        fig_fi.patch.set_facecolor('#0f172a')
-        ax_fi.set_facecolor('#0f172a')
         colors = ['#4cc9f0' if c > 0 else '#f72585' for c in coefs[sorted_idx]]
         ax_fi.barh([features_clf[i] for i in sorted_idx], np.abs(coefs[sorted_idx]), color=colors)
-        ax_fi.set_xlabel('Coefficient Impact', color='white')
-        ax_fi.tick_params(colors='white')
+        ax_fi.set_xlabel('Coefficient Impact')
         ax_fi.invert_yaxis()
         st.pyplot(fig_fi)

@@ -49,6 +49,7 @@ Here are the retrieved clinical guidelines mapping to this patient's condition:
 2. Incorporate the retrieved guidelines to justify your recommendations. 
 3. Always include a disclaimer that you are an AI and the patient should consult a doctor.
 4. If answering a follow-up question, use the chat history to respond appropriately.
+5. Speak directly to the person. Begin your response with "Dear Patient" or a warm greeting. You must NEVER use template placeholders like "[Patient's Name]".
 """
     
     # Combine system prompt with conversation history
